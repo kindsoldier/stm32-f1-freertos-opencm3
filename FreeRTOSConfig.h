@@ -29,7 +29,7 @@
  * See http://www.freertos.org/a00110.html.
  *----------------------------------------------------------*/
 
-extern size_t __heap_size;
+extern size_t __rtos_heap_size;
 
 #define configUSE_PREEMPTION        1
 #define configUSE_IDLE_HOOK         0
@@ -39,7 +39,7 @@ extern size_t __heap_size;
 #define configTICK_RATE_HZ          ((TickType_t) 1000)
 #define configMAX_PRIORITIES        (5)
 #define configMINIMAL_STACK_SIZE    ((unsigned short) 128)
-#define configTOTAL_HEAP_SIZE       ((size_t) __heap_size)
+#define configTOTAL_HEAP_SIZE       ((size_t) __rtos_heap_size)
 #define configMAX_TASK_NAME_LEN     (16)
 #define configUSE_TRACE_FACILITY    0
 #define configUSE_16_BIT_TICKS      0

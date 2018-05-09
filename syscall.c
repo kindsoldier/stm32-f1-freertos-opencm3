@@ -117,21 +117,22 @@ int _wait(int *status) {
     return -1;
 }
 
+
 void *_sbrk(int incr) {
 
-    extern void *__heap_start;
-    extern void *__heap_end;
+    extern const void *_heap;
+    extern const void *_eheap;
 
     void *prev_heap_ptr;
     static void *heap_ptr;
 
     if (heap_ptr == 0) {
-        heap_ptr = (void *)&__heap_start;
+        heap_ptr = (void *)&_heap;
     }
 
     void * next_heap_ptr = heap_ptr + incr;
 
-    if (next_heap_ptr >= (void *) &__heap_end) {
+    if (next_heap_ptr >= (void *) &_eheap) {
         errno = ENOMEM;
         return NULL;
     }

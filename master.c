@@ -12,11 +12,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
-
-#include <strings.h>
+#include <syscall.h>
 
 volatile QueueHandle_t usart_txq;
-
+uint32_t sp;
 
 static void clock_setup(void) {
     rcc_clock_setup_in_hse_8mhz_out_72mhz();
@@ -53,12 +52,13 @@ void usart_putc(uint8_t c) {
     usart_send_blocking(USART1, c);
 }
 
-//extern size_t __heap_size;
+extern void * _stack;
+extern void * _heap;
+
 
 static void olleh_task(void *args __attribute__ ((unused))) {
     while (1) {
         printf("Dlrow, Olleh!\r\n");
-        printf("HS=%d\r\n", &__heap_size);
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
@@ -90,10 +90,11 @@ static void hello_task(void *args __attribute__ ((unused))) {
     }
 }
 
-int main(void) {
+int8_t main(void) {
 
     clock_setup();
     usart_setup();
+
 
     usart_txq = xQueueCreate(1024, sizeof(uint8_t));
 
@@ -104,6 +105,8 @@ int main(void) {
     vTaskStartScheduler();
 
     uint32_t i = 0;
+
+
     while (1) {
         i++;
     }

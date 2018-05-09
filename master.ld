@@ -100,13 +100,11 @@ SECTIONS {
 
     . = ALIGN(4);
     __end = .;
+    _heap = .;
 }
 
-PROVIDE(__heap = __end );
-PROVIDE(__heap_start = __end);
-PROVIDE(__heap_size = LENGTH(SRAM) - 3048);
-PROVIDE(__heap_end = ORIGIN(SRAM) + __heap_size);
-PROVIDE(_eheap = __heap_end );
+PROVIDE(__rtos_heap_size = LENGTH(SRAM) - 2048);
+PROVIDE(_eheap = ORIGIN(SRAM) + LENGTH(SRAM));
 PROVIDE(_stack = ORIGIN(SRAM) + LENGTH(SRAM));
 
 
