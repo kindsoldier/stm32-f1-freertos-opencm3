@@ -4,6 +4,7 @@
 Mix FreeRTOS + OpenCM3 + Newlib
 
 Released
+- RTOS interrupt glue code for opencm3
 - work with newlib malloc()
 
 No guarantees. This code is given only as an sample.
