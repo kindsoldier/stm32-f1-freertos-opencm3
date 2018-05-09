@@ -15,7 +15,7 @@ ENTRY(main)
 SECTIONS {
     __text_start = .;
     .text : {
-        *(.vectors)    /* Vector table */
+        KEEP(*(.vectors))    /* Vector table */
         *(.text*)      /* Program code */
         . = ALIGN(4);
         *(.rodata*)    /* Read-only data */
@@ -104,8 +104,12 @@ SECTIONS {
 
 PROVIDE(__heap = __end );
 PROVIDE(__heap_start = __end);
+PROVIDE(__heap_end = ORIGIN(SRAM) + LENGTH(SRAM));
+PROVIDE(__eheap = ORIGIN(SRAM) + LENGTH(SRAM));
 
-PROVIDE(_stack = ORIGIN(SRAM) + LENGTH(SRAM) - 1);
-_estack = ORIGIN(SRAM) + LENGTH(SRAM) - 1;
+PROVIDE(_stack = ORIGIN(SRAM) + LENGTH(SRAM));
+/* EOF */
+
+
 
 

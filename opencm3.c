@@ -1,4 +1,3 @@
-
 /* Author, Copyright: Oleg Borodin <onborodin@gmail.com> 2018 */
 
 #include <FreeRTOS.h>

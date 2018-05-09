@@ -8,7 +8,13 @@
 #include <libopencm3/stm32/usart.h>
 #include <errno.h>
 
+#include <FreeRTOS.h>
+#include <task.h>
+#include <queue.h>
+
 #include <syscall.h>
+
+extern QueueHandle_t usart_txq;
 
 #undef errno
 extern int errno;
@@ -76,12 +82,11 @@ int _read(int file, char *ptr, int len) {
     return i;
 }
 
-
 int _write(int file, char *ptr, int len) {
     int i;
     if (file == STDOUT | file == STDERR) {
         for (i = 0; i < len; i++) {
-            // now nothing
+            xQueueSend(usart_txq, &ptr[i], portMAX_DELAY);
         }
         return len;
     }
@@ -112,29 +117,29 @@ int _wait(int *status) {
     return -1;
 }
 
-void * _sbrk(int incr) {
+void *_sbrk(int incr) {
 
     extern void *__heap_start;
+    extern void *__heap_end;
 
-    void * prev_heap_ptr;
-    static void * heap_ptr;
+    void *prev_heap_ptr;
+    static void *heap_ptr;
 
     if (heap_ptr == 0) {
         heap_ptr = (void *)&__heap_start;
     }
 
-    prev_heap_ptr = heap_ptr;
+    void * next_heap_ptr = heap_ptr + incr;
 
-    void * stack_ptr = (void *) __get_SP();
-    if (heap_ptr + incr > stack_ptr) {
+    if (next_heap_ptr >= (void *) &__heap_end) {
         errno = ENOMEM;
-        _write(1, "Heap and stack collision\r\n", 26);
-        abort();
+        return NULL;
     }
 
-    heap_ptr += incr;
+    prev_heap_ptr = heap_ptr;
+    heap_ptr = next_heap_ptr;
 
-    return (void *) prev_heap_ptr;
+    return (void *)prev_heap_ptr;
 }
 
 /* EOF */

@@ -9,8 +9,14 @@
 #include <task.h>
 #include <queue.h>
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <strings.h>
 
-static QueueHandle_t usart_txq;
+#include <strings.h>
+
+volatile QueueHandle_t usart_txq;
+
 
 static void clock_setup(void) {
     rcc_clock_setup_in_hse_8mhz_out_72mhz();
@@ -48,11 +54,13 @@ void usart_putc(uint8_t c) {
 }
 
 
-static void hello0_task(void *args __attribute__ ((unused))) {
+static void olleh_task(void *args __attribute__ ((unused))) {
     while (1) {
-        usart_puts("Hello, World!\r\n");
+        printf("Dlrow, Olleh!\r\n");
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
+
 
 static void usart_task(void *args __attribute__ ((unused))) {
     uint8_t c;
@@ -75,8 +83,8 @@ static void hello_task(void *args __attribute__ ((unused))) {
             xQueueSend(usart_txq, &str[i], portMAX_DELAY);
             i++;
         }
-        taskYIELD();
-        //vTaskDelay(pdMS_TO_TICKS(1000));
+        //taskYIELD();
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 
@@ -88,8 +96,8 @@ int main(void) {
     usart_txq = xQueueCreate(1024, sizeof(uint8_t));
 
     xTaskCreate(usart_task, "UART", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
-    xTaskCreate(hello_task, "HELLO", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2,
-                NULL);
+    xTaskCreate(hello_task, "HELLO", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, NULL);
+    xTaskCreate(hello0_task, "OLLEH", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 3, NULL);
 
     vTaskStartScheduler();
 
