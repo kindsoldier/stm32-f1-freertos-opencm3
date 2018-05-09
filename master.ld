@@ -104,10 +104,13 @@ SECTIONS {
 
 PROVIDE(__heap = __end );
 PROVIDE(__heap_start = __end);
-PROVIDE(__heap_end = ORIGIN(SRAM) + LENGTH(SRAM));
-PROVIDE(__eheap = ORIGIN(SRAM) + LENGTH(SRAM));
-
+PROVIDE(__heap_size = LENGTH(SRAM) - 3048);
+PROVIDE(__heap_end = ORIGIN(SRAM) + __heap_size);
+PROVIDE(_eheap = __heap_end );
 PROVIDE(_stack = ORIGIN(SRAM) + LENGTH(SRAM));
+
+
+
 /* EOF */
 
 

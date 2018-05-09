@@ -53,10 +53,12 @@ void usart_putc(uint8_t c) {
     usart_send_blocking(USART1, c);
 }
 
+//extern size_t __heap_size;
 
 static void olleh_task(void *args __attribute__ ((unused))) {
     while (1) {
         printf("Dlrow, Olleh!\r\n");
+        printf("HS=%d\r\n", &__heap_size);
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
@@ -97,7 +99,7 @@ int main(void) {
 
     xTaskCreate(usart_task, "UART", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
     xTaskCreate(hello_task, "HELLO", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, NULL);
-    xTaskCreate(hello0_task, "OLLEH", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 3, NULL);
+    xTaskCreate(olleh_task, "OLLEH", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 3, NULL);
 
     vTaskStartScheduler();
 

@@ -58,8 +58,6 @@ master.elf: $(MASTER_OBJS)
 
 clean:
 	rm -f *.i *.o *.elf *.bin *.map *~ *.hex *.d *.s
-
-fullclean: clean
 	cd $(RTOS_LOC) && rm -f *.o *.d *~ lib*.a
 
 
