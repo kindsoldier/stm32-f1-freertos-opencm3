@@ -123,7 +123,7 @@ static void log_task(void *args __attribute__ ((unused))) {
     }
 }
 
-int8_t main(void) {
+int main(void) {
 
     clock_setup();
     usart_setup();
@@ -134,8 +134,8 @@ int8_t main(void) {
     lcd_setup();
     lcd_clear();
 
-    console_puts(&console, "STM32 CONSOLE\r\n");
-    console_puts(&console, "READY>\r\n");
+    console_xyputs(&console, 0, 0, "FreeRTOS STM32");
+    console_xyputs(&console, 1, 0, "READY>");
 
 #define UART_QUEUE_LEN      1024
 #define CONSOLE_QUEUE_LEN   8
@@ -149,14 +149,6 @@ int8_t main(void) {
     xTaskCreate(console_task, "CONSOLE", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 8, NULL);
 
     vTaskStartScheduler();
-
-    uint32_t i = 0;
-
-
-    while (1) {
-        i++;
-    }
-    return 0;
 }
 
 /* EOF */
