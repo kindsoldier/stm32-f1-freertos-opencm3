@@ -6,6 +6,7 @@ Mix FreeRTOS + OpenCM3 + Newlib
 Released
 - RTOS interrupt glue code for opencm3
 - work with newlib malloc()
+- ST7735 based console
 
 ### Memory map
 

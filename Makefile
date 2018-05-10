@@ -25,6 +25,8 @@ LDFLAGS+= -Wl,--start-group -lc -lgcc -Wl,--end-group
 MASTER_OBJS+= master.o
 MASTER_OBJS+= syscall.o
 MASTER_OBJS+= opencm3.o
+MASTER_OBJS+= st7735.o
+MASTER_OBJS+= console.o
 
 RTOS_OBJS+= $(RTOS_LOC)/heap_3.o
 RTOS_OBJS+= $(RTOS_LOC)/list.o
