@@ -99,12 +99,6 @@ static void usart_task(void *args __attribute__ ((unused))) {
 static void console_task(void *args __attribute__ ((unused))) {
     console_message_t msg;
     while (1) {
-
-        uint32_t msg_count = uxQueueMessagesWaiting(console_q);
-        uint8_t str[18];
-        snprintf(str, 6, "%4u", msg_count);
-        console_xyputs(&console, 7,0, str);
-
         if (xQueueReceive(console_q, &msg, 10) == pdPASS) {
             console_xyputs(&console, msg.row, msg.col, msg.str);
         } else {
