@@ -164,10 +164,10 @@ void adc_setup(void) {
     adc_calibrate(ADC1);
     adc_enable_temperature_sensor();
 
-    channel_seq[0] = 1;
-    channel_seq[1] = 2;
-    channel_seq[2] = 16;
-    adc_set_regular_sequence(ADC1, 3, channel_seq);
+    channel_seq[0] = 16;
+    channel_seq[1] = 0;
+    channel_seq[2] = 1;
+    adc_set_regular_sequence(ADC1, 1, channel_seq);
 
     adc_enable_dma(ADC1);
     delay(100);
@@ -183,7 +183,7 @@ int16_t get_mcu_temp(void) {
     float V_25 = 1.45;
     float Slope = 4.3e-3;
     float Vref = 1.78;
-    float V_sense = adc_res[2] / 4096.0 * Vref;
+    float V_sense = adc_res[0] / 4096.0 * Vref;
     float temp = (V_25 - V_sense) / Slope + 25.0;
     return (int16_t) temp;
 }
