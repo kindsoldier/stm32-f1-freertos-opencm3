@@ -1,7 +1,30 @@
 /*
-    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
-    All rights reserved
-*/
+ * FreeRTOS Kernel V10.0.0
+ * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software. If you wish to use our Amazon
+ * FreeRTOS name, please do so in a fair use way that does not cause confusion.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://www.FreeRTOS.org
+ * http://aws.amazon.com/freertos
+ *
+ * 1 tab == 4 spaces!
+ */
 
 /*-----------------------------------------------------------
  * Portable layer API.  Each function must be defined for each port.
@@ -20,13 +43,14 @@ Purely for reasons of backward compatibility the old method is still valid, but
 to make it clear that new projects should not use it, support for the port
 specific constants has been moved into the deprecated_definitions.h header
 file. */
+//#include "deprecated_definitions.h"
 
 /* If portENTER_CRITICAL is not defined then including deprecated_definitions.h
 did not result in a portmacro.h header file being included - and it should be
 included here.  In this case the path to the correct portmacro.h header file
 must be set in the compiler's include path. */
 #ifndef portENTER_CRITICAL
-    #include <portmacro.h>
+    #include "portmacro.h"
 #endif
 
 #if portBYTE_ALIGNMENT == 32
@@ -65,7 +89,7 @@ must be set in the compiler's include path. */
 extern "C" {
 #endif
 
-#include <mpu_wrappers.h>
+#include "mpu_wrappers.h"
 
 /*
  * Setup the stack of a new task so it is ready to be placed under the
@@ -74,16 +98,14 @@ extern "C" {
  *
  */
 #if (portUSING_MPU_WRAPPERS == 1)
-StackType_t *pxPortInitialiseStack(StackType_t * pxTopOfStack, TaskFunction_t pxCode,
-                                   void *pvParameters,
-                                   BaseType_t xRunPrivileged) PRIVILEGED_FUNCTION;
+    StackType_t *pxPortInitialiseStack(StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters, BaseType_t xRunPrivileged) PRIVILEGED_FUNCTION;
 #else
-StackType_t *pxPortInitialiseStack(StackType_t * pxTopOfStack, TaskFunction_t pxCode,
-                                   void *pvParameters) PRIVILEGED_FUNCTION;
+    StackType_t *pxPortInitialiseStack(StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParameters) PRIVILEGED_FUNCTION;
 #endif
 
 /* Used by heap_5.c. */
-typedef struct HeapRegion {
+typedef struct HeapRegion
+{
     uint8_t *pucStartAddress;
     size_t xSizeInBytes;
 } HeapRegion_t;
@@ -132,11 +154,8 @@ void vPortEndScheduler(void) PRIVILEGED_FUNCTION;
  * contained in xRegions.
  */
 #if (portUSING_MPU_WRAPPERS == 1)
-struct xMEMORY_REGION;
-void vPortStoreTaskMPUSettings(xMPU_SETTINGS * xMPUSettings,
-                               const struct xMEMORY_REGION *const xRegions,
-                               StackType_t * pxBottomOfStack,
-                               uint32_t ulStackDepth) PRIVILEGED_FUNCTION;
+    struct xMEMORY_REGION;
+    void vPortStoreTaskMPUSettings(xMPU_SETTINGS *xMPUSettings, const struct xMEMORY_REGION * const xRegions, StackType_t *pxBottomOfStack, uint32_t ulStackDepth) PRIVILEGED_FUNCTION;
 #endif
 
 #ifdef __cplusplus

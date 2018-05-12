@@ -3,7 +3,7 @@
 #
 .SECONDARY:
 
-RTOS_LOC = ./RTOS
+RTOS_LOC = RTOS
 
 CFLAGS+= -I. -Os -mthumb -mcpu=cortex-m3 -march=armv7-m -msoft-float -DSTM32F1 -std=c99
 CFLAGS+= -fno-common -ffunction-sections -fdata-sections
@@ -17,9 +17,9 @@ LDFLAGS+= -T master.ld
 
 LDFLAGS+= -Wl,-Map=master.map
 LDFLAGS+= -Wl,--cref -Wl,--gc-sections
+LDFLAGS+= -Wl,--start-group -lc -lgcc -Wl,--end-group
 LDFLAGS+= -lopencm3_stm32f1
 LDFLAGS+= -L${RTOS_LOC} -lrtos
-LDFLAGS+= -Wl,--start-group -lc -lgcc -Wl,--end-group
 
 
 MASTER_OBJS+= master.o
@@ -28,15 +28,22 @@ MASTER_OBJS+= opencm3.o
 MASTER_OBJS+= st7735.o
 MASTER_OBJS+= console.o
 
+RTOS_OBJS+= $(RTOS_LOC)/croutine.o
+RTOS_OBJS+= $(RTOS_LOC)/event_groups.o
 RTOS_OBJS+= $(RTOS_LOC)/heap_3.o
 RTOS_OBJS+= $(RTOS_LOC)/list.o
 RTOS_OBJS+= $(RTOS_LOC)/port.o
 RTOS_OBJS+= $(RTOS_LOC)/queue.o
+RTOS_OBJS+= $(RTOS_LOC)/stream_buffer.o
 RTOS_OBJS+= $(RTOS_LOC)/tasks.o
+RTOS_OBJS+= $(RTOS_LOC)/timers.o
 
 all: rtos master.bin
 
 rtos:  $(RTOS_LOC)/librtos.a
+
+${RTOS_OBJS}: FreeRTOSConfig.h
+
 
 $(RTOS_LOC)/librtos.a: $(RTOS_OBJS)
 	cd $(@D) && arm-eabi-ar rcv $(@F) $(^F)

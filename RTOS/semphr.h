@@ -1,7 +1,30 @@
 /*
-    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
-    All rights reserved
-*/
+ * FreeRTOS Kernel V10.0.0
+ * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software. If you wish to use our Amazon
+ * FreeRTOS name, please do so in a fair use way that does not cause confusion.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://www.FreeRTOS.org
+ * http://aws.amazon.com/freertos
+ *
+ * 1 tab == 4 spaces!
+ */
 
 #ifndef SEMAPHORE_H
 #define SEMAPHORE_H
@@ -10,7 +33,7 @@
     #error "include FreeRTOS.h" must appear in source files before "include semphr.h"
 #endif
 
-#include <queue.h>
+#include "queue.h"
 
 typedef QueueHandle_t SemaphoreHandle_t;
 
@@ -204,7 +227,7 @@ typedef QueueHandle_t SemaphoreHandle_t;
  * <pre>xSemaphoreTake(
  *                   SemaphoreHandle_t xSemaphore,
  *                   TickType_t xBlockTime
- *             )</pre>
+ *              )</pre>
  *
  * <i>Macro</i> to obtain a semaphore.  The semaphore must have previously been
  * created with a call to xSemaphoreCreateBinary(), xSemaphoreCreateMutex() or
@@ -264,14 +287,14 @@ typedef QueueHandle_t SemaphoreHandle_t;
  * \defgroup xSemaphoreTake xSemaphoreTake
  * \ingroup Semaphores
  */
-#define xSemaphoreTake(xSemaphore, xBlockTime)        xQueueGenericReceive((QueueHandle_t) (xSemaphore), NULL, (xBlockTime), pdFALSE)
+#define xSemaphoreTake(xSemaphore, xBlockTime)        xQueueSemaphoreTake((xSemaphore), (xBlockTime))
 
 /**
  * semphr. h
  * xSemaphoreTakeRecursive(
  *                          SemaphoreHandle_t xMutex,
  *                          TickType_t xBlockTime
- *                      )
+ *                       )
  *
  * <i>Macro</i> to recursively obtain, or 'take', a mutex type semaphore.
  * The mutex must have previously been created using a call to
@@ -516,7 +539,7 @@ typedef QueueHandle_t SemaphoreHandle_t;
  xSemaphoreGiveFromISR(
                           SemaphoreHandle_t xSemaphore,
                           BaseType_t *pxHigherPriorityTaskWoken
-                    )</pre>
+                     )</pre>
  *
  * <i>Macro</i> to  release a semaphore.  The semaphore must have previously been
  * created with a call to xSemaphoreCreateBinary() or xSemaphoreCreateCounting().
@@ -607,7 +630,7 @@ typedef QueueHandle_t SemaphoreHandle_t;
  xSemaphoreTakeFromISR(
                           SemaphoreHandle_t xSemaphore,
                           BaseType_t *pxHigherPriorityTaskWoken
-                    )</pre>
+                     )</pre>
  *
  * <i>Macro</i> to  take a semaphore from an ISR.  The semaphore must have
  * previously been created with a call to xSemaphoreCreateBinary() or
@@ -1092,6 +1115,17 @@ typedef QueueHandle_t SemaphoreHandle_t;
 
 /**
  * semphr.h
+ * <pre>TaskHandle_t xSemaphoreGetMutexHolderFromISR(SemaphoreHandle_t xMutex);</pre>
+ *
+ * If xMutex is indeed a mutex type semaphore, return the current mutex holder.
+ * If xMutex is not a mutex type semaphore, or the mutex is available (not held
+ * by a task), return NULL.
+ *
+ */
+#define xSemaphoreGetMutexHolderFromISR(xSemaphore) xQueueGetMutexHolderFromISR((xSemaphore))
+
+/**
+ * semphr.h
  * <pre>UBaseType_t uxSemaphoreGetCount(SemaphoreHandle_t xSemaphore);</pre>
  *
  * If the semaphore is a counting semaphore then uxSemaphoreGetCount() returns
@@ -1103,3 +1137,5 @@ typedef QueueHandle_t SemaphoreHandle_t;
 #define uxSemaphoreGetCount(xSemaphore) uxQueueMessagesWaiting((QueueHandle_t) (xSemaphore))
 
 #endif /* SEMAPHORE_H */
+
+

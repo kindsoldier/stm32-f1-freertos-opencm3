@@ -1,7 +1,30 @@
 /*
-    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
-    All rights reserved
-*/
+ * FreeRTOS Kernel V10.0.0
+ * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software. If you wish to use our Amazon
+ * FreeRTOS name, please do so in a fair use way that does not cause confusion.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://www.FreeRTOS.org
+ * http://aws.amazon.com/freertos
+ *
+ * 1 tab == 4 spaces!
+ */
 
 
 #ifndef PORTMACRO_H
@@ -45,11 +68,13 @@ typedef unsigned long UBaseType_t;
     not need to be guarded with a critical section. */
     #define portTICK_TYPE_IS_ATOMIC 1
 #endif
+/*-----------------------------------------------------------*/
 
 /* Architecture specifics. */
 #define portSTACK_GROWTH            (-1)
 #define portTICK_PERIOD_MS          ((TickType_t) 1000 / configTICK_RATE_HZ)
 #define portBYTE_ALIGNMENT          8
+/*-----------------------------------------------------------*/
 
 /* Scheduler utilities. */
 #define portYIELD()                                                             \
@@ -59,14 +84,15 @@ typedef unsigned long UBaseType_t;
                                                                                 \
     /* Barriers are normally not required but do ensure the code is completely  \
     within the specified behaviour for the architecture. */                     \
-    __asm volatile("dsb");                                                      \
-    __asm volatile("isb");                                                      \
+    __asm volatile("dsb" ::: "memory");                                       \
+    __asm volatile("isb");                                                    \
 }
 
 #define portNVIC_INT_CTRL_REG       (* ((volatile uint32_t *) 0xe000ed04))
 #define portNVIC_PENDSVSET_BIT      (1UL << 28UL)
 #define portEND_SWITCHING_ISR(xSwitchRequired) if(xSwitchRequired != pdFALSE) portYIELD()
 #define portYIELD_FROM_ISR(x) portEND_SWITCHING_ISR(x)
+/*-----------------------------------------------------------*/
 
 /* Critical section management. */
 extern void vPortEnterCritical(void);
@@ -77,6 +103,8 @@ extern void vPortExitCritical(void);
 #define portENABLE_INTERRUPTS()                 vPortSetBASEPRI(0)
 #define portENTER_CRITICAL()                    vPortEnterCritical()
 #define portEXIT_CRITICAL()                     vPortExitCritical()
+
+/*-----------------------------------------------------------*/
 
 /* Task function macros as described on the FreeRTOS.org WEB site.  These are
 not necessary for to use this port.  They are defined so the common demo files
@@ -100,12 +128,13 @@ not necessary for to use this port.  They are defined so the common demo files
 #if configUSE_PORT_OPTIMISED_TASK_SELECTION == 1
 
     /* Generic helper function. */
-__attribute__((always_inline)) static inline uint8_t ucPortCountLeadingZeros(uint32_t ulBitmap) {
+    __attribute__((always_inline)) static inline uint8_t ucPortCountLeadingZeros(uint32_t ulBitmap)
+    {
     uint8_t ucReturn;
 
-    __asm volatile ("clz %0, %1" : "=r" (ucReturn) : "r" (ulBitmap));
-    return ucReturn;
-}
+        __asm volatile ("clz %0, %1" : "=r" (ucReturn) : "r" (ulBitmap) : "memory");
+        return ucReturn;
+    }
 
     /* Check the configuration. */
     #if (configMAX_PRIORITIES > 32)
@@ -138,57 +167,70 @@ __attribute__((always_inline)) static inline uint8_t ucPortCountLeadingZeros(uin
     #define portFORCE_INLINE inline __attribute__((always_inline))
 #endif
 
-portFORCE_INLINE static BaseType_t xPortIsInsideInterrupt(void) {
-    uint32_t ulCurrentInterrupt;
-    BaseType_t xReturn;
+portFORCE_INLINE static BaseType_t xPortIsInsideInterrupt(void)
+{
+uint32_t ulCurrentInterrupt;
+BaseType_t xReturn;
 
     /* Obtain the number of the currently executing interrupt. */
-    __asm volatile("mrs %0, ipsr" : "=r"(ulCurrentInterrupt));
+    __asm volatile("mrs %0, ipsr" : "=r"(ulCurrentInterrupt) :: "memory");
 
-    if(ulCurrentInterrupt == 0) {
+    if(ulCurrentInterrupt == 0)
+    {
         xReturn = pdFALSE;
-    } else {
+    }
+    else
+    {
         xReturn = pdTRUE;
     }
+
     return xReturn;
 }
 
 /*-----------------------------------------------------------*/
 
-portFORCE_INLINE static void vPortRaiseBASEPRI(void) {
-    uint32_t ulNewBASEPRI;
+portFORCE_INLINE static void vPortRaiseBASEPRI(void)
+{
+uint32_t ulNewBASEPRI;
+
     __asm volatile
     (
         "   mov %0, %1                                              \n" \
         "   msr basepri, %0                                         \n" \
         "   isb                                                     \n" \
         "   dsb                                                     \n" \
-        :"=r" (ulNewBASEPRI) : "i" (configMAX_SYSCALL_INTERRUPT_PRIORITY)
-  );
+        :"=r" (ulNewBASEPRI) : "i" (configMAX_SYSCALL_INTERRUPT_PRIORITY) : "memory"
+   );
 }
 
 /*-----------------------------------------------------------*/
 
-portFORCE_INLINE static uint32_t ulPortRaiseBASEPRI(void) {
-    uint32_t ulOriginalBASEPRI, ulNewBASEPRI;
-    __asm volatile (
+portFORCE_INLINE static uint32_t ulPortRaiseBASEPRI(void)
+{
+uint32_t ulOriginalBASEPRI, ulNewBASEPRI;
+
+    __asm volatile
+    (
         "   mrs %0, basepri                                         \n" \
         "   mov %1, %2                                              \n" \
         "   msr basepri, %1                                         \n" \
         "   isb                                                     \n" \
         "   dsb                                                     \n" \
-        :"=r" (ulOriginalBASEPRI), "=r" (ulNewBASEPRI) : "i" (configMAX_SYSCALL_INTERRUPT_PRIORITY)
-    );
+        :"=r" (ulOriginalBASEPRI), "=r" (ulNewBASEPRI) : "i" (configMAX_SYSCALL_INTERRUPT_PRIORITY) : "memory"
+   );
+
     /* This return will not be reached but is necessary to prevent compiler
     warnings. */
     return ulOriginalBASEPRI;
 }
 /*-----------------------------------------------------------*/
 
-portFORCE_INLINE static void vPortSetBASEPRI(uint32_t ulNewMaskValue) {
-    __asm volatile (
-        "   msr basepri, %0 " :: "r" (ulNewMaskValue)
-    );
+portFORCE_INLINE static void vPortSetBASEPRI(uint32_t ulNewMaskValue)
+{
+    __asm volatile
+    (
+        "   msr basepri, %0 " :: "r" (ulNewMaskValue) : "memory"
+   );
 }
 /*-----------------------------------------------------------*/
 

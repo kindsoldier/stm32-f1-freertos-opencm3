@@ -1,7 +1,30 @@
 /*
-    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
-    All rights reserved
-*/
+ * FreeRTOS Kernel V10.0.0
+ * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software. If you wish to use our Amazon
+ * FreeRTOS name, please do so in a fair use way that does not cause confusion.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://www.FreeRTOS.org
+ * http://aws.amazon.com/freertos
+ *
+ * 1 tab == 4 spaces!
+ */
 
 #ifndef INC_FREERTOS_H
 #define INC_FREERTOS_H
@@ -31,13 +54,13 @@ extern "C" {
 #endif
 
 /* Application specific configuration options. */
-#include <FreeRTOSConfig.h>
+#include "FreeRTOSConfig.h"
 
 /* Basic FreeRTOS definitions. */
-#include <projdefs.h>
+#include "projdefs.h"
 
 /* Definitions specific to the port being used. */
-#include <portable.h>
+#include "portable.h"
 
 /* Must be defaulted before configUSE_NEWLIB_REENTRANT is used below. */
 #ifndef configUSE_NEWLIB_REENTRANT
@@ -62,6 +85,10 @@ extern "C" {
     #error Missing definition:  configMAX_PRIORITIES must be defined in FreeRTOSConfig.h.  See the Configuration section of the FreeRTOS API documentation for details.
 #endif
 
+#if configMAX_PRIORITIES < 1
+    #error configMAX_PRIORITIES must be defined to be greater than or equal to 1.
+#endif
+
 #ifndef configUSE_PREEMPTION
     #error Missing definition:  configUSE_PREEMPTION must be defined in FreeRTOSConfig.h as either 1 or 0.  See the Configuration section of the FreeRTOS API documentation for details.
 #endif
@@ -76,10 +103,6 @@ extern "C" {
 
 #ifndef configUSE_16_BIT_TICKS
     #error Missing definition:  configUSE_16_BIT_TICKS must be defined in FreeRTOSConfig.h as either 1 or 0.  See the Configuration section of the FreeRTOS API documentation for details.
-#endif
-
-#ifndef configMAX_PRIORITIES
-    #error configMAX_PRIORITIES must be defined to be greater than or equal to 1.
 #endif
 
 #ifndef configUSE_CO_ROUTINES
@@ -332,6 +355,14 @@ extern "C" {
     #define traceBLOCKING_ON_QUEUE_RECEIVE(pxQueue)
 #endif
 
+#ifndef traceBLOCKING_ON_QUEUE_PEEK
+    /* Task is about to block because it cannot read from a
+    queue/mutex/semaphore.  pxQueue is a pointer to the queue/mutex/semaphore
+    upon which the read was attempted.  pxCurrentTCB points to the TCB of the
+    task that attempted the read. */
+    #define traceBLOCKING_ON_QUEUE_PEEK(pxQueue)
+#endif
+
 #ifndef traceBLOCKING_ON_QUEUE_SEND
     /* Task is about to block because it cannot write to a
     queue/mutex/semaphore.  pxQueue is a pointer to the queue/mutex/semaphore
@@ -342,6 +373,14 @@ extern "C" {
 
 #ifndef configCHECK_FOR_STACK_OVERFLOW
     #define configCHECK_FOR_STACK_OVERFLOW 0
+#endif
+
+#ifndef configRECORD_STACK_HIGH_ADDRESS
+    #define configRECORD_STACK_HIGH_ADDRESS 0
+#endif
+
+#ifndef configINCLUDE_FREERTOS_TASK_C_ADDITIONS_H
+    #define configINCLUDE_FREERTOS_TASK_C_ADDITIONS_H 0
 #endif
 
 /* The following event macros are embedded in the kernel API calls. */
@@ -408,6 +447,10 @@ extern "C" {
 
 #ifndef traceQUEUE_PEEK
     #define traceQUEUE_PEEK(pxQueue)
+#endif
+
+#ifndef traceQUEUE_PEEK_FAILED
+    #define traceQUEUE_PEEK_FAILED(pxQueue)
 #endif
 
 #ifndef traceQUEUE_PEEK_FROM_ISR
@@ -594,6 +637,58 @@ extern "C" {
     #define traceTASK_NOTIFY_GIVE_FROM_ISR()
 #endif
 
+#ifndef traceSTREAM_BUFFER_CREATE_FAILED
+    #define traceSTREAM_BUFFER_CREATE_FAILED(xIsMessageBuffer)
+#endif
+
+#ifndef traceSTREAM_BUFFER_CREATE_STATIC_FAILED
+    #define traceSTREAM_BUFFER_CREATE_STATIC_FAILED(xReturn, xIsMessageBuffer)
+#endif
+
+#ifndef traceSTREAM_BUFFER_CREATE
+    #define traceSTREAM_BUFFER_CREATE(pxStreamBuffer, xIsMessageBuffer)
+#endif
+
+#ifndef traceSTREAM_BUFFER_DELETE
+    #define traceSTREAM_BUFFER_DELETE(xStreamBuffer)
+#endif
+
+#ifndef traceSTREAM_BUFFER_RESET
+    #define traceSTREAM_BUFFER_RESET(xStreamBuffer)
+#endif
+
+#ifndef traceBLOCKING_ON_STREAM_BUFFER_SEND
+    #define traceBLOCKING_ON_STREAM_BUFFER_SEND(xStreamBuffer)
+#endif
+
+#ifndef traceSTREAM_BUFFER_SEND
+    #define traceSTREAM_BUFFER_SEND(xStreamBuffer, xBytesSent)
+#endif
+
+#ifndef traceSTREAM_BUFFER_SEND_FAILED
+    #define traceSTREAM_BUFFER_SEND_FAILED(xStreamBuffer)
+#endif
+
+#ifndef traceSTREAM_BUFFER_SEND_FROM_ISR
+    #define traceSTREAM_BUFFER_SEND_FROM_ISR(xStreamBuffer, xBytesSent)
+#endif
+
+#ifndef traceBLOCKING_ON_STREAM_BUFFER_RECEIVE
+    #define traceBLOCKING_ON_STREAM_BUFFER_RECEIVE(xStreamBuffer)
+#endif
+
+#ifndef traceSTREAM_BUFFER_RECEIVE
+    #define traceSTREAM_BUFFER_RECEIVE(xStreamBuffer, xReceivedLength)
+#endif
+
+#ifndef traceSTREAM_BUFFER_RECEIVE_FAILED
+    #define traceSTREAM_BUFFER_RECEIVE_FAILED(xStreamBuffer)
+#endif
+
+#ifndef traceSTREAM_BUFFER_RECEIVE_FROM_ISR
+    #define traceSTREAM_BUFFER_RECEIVE_FROM_ISR(xStreamBuffer, xReceivedLength)
+#endif
+
 #ifndef configGENERATE_RUN_TIME_STATS
     #define configGENERATE_RUN_TIME_STATS 0
 #endif
@@ -644,6 +739,10 @@ extern "C" {
     #define configUSE_TICKLESS_IDLE 0
 #endif
 
+#ifndef configPRE_SUPPRESS_TICKS_AND_SLEEP_PROCESSING
+    #define configPRE_SUPPRESS_TICKS_AND_SLEEP_PROCESSING(x)
+#endif
+
 #ifndef configPRE_SLEEP_PROCESSING
     #define configPRE_SLEEP_PROCESSING(x)
 #endif
@@ -658,6 +757,10 @@ extern "C" {
 
 #ifndef portTASK_USES_FLOATING_POINT
     #define portTASK_USES_FLOATING_POINT()
+#endif
+
+#ifndef portTASK_CALLS_SECURE_FUNCTIONS
+    #define portTASK_CALLS_SECURE_FUNCTIONS()
 #endif
 
 #ifndef configUSE_TIME_SLICING
@@ -718,6 +821,12 @@ extern "C" {
     #define configSUPPORT_DYNAMIC_ALLOCATION 1
 #endif
 
+#ifndef configSTACK_DEPTH_TYPE
+    /* Defaults to uint16_t for backward compatibility, but can be overridden
+    in FreeRTOSConfig.h if uint16_t is too restrictive. */
+    #define configSTACK_DEPTH_TYPE uint16_t
+#endif
+
 /* Sanity check the configuration. */
 #if (configUSE_TICKLESS_IDLE != 0)
     #if (INCLUDE_vTaskSuspend != 1)
@@ -731,6 +840,10 @@ extern "C" {
 
 #if ((configUSE_RECURSIVE_MUTEXES == 1) && (configUSE_MUTEXES != 1))
     #error configUSE_MUTEXES must be set to 1 to use recursive mutexes
+#endif
+
+#ifndef configINITIAL_TICK_COUNT
+    #define configINITIAL_TICK_COUNT 0
 #endif
 
 #if (portTICK_TYPE_IS_ATOMIC == 0)
@@ -754,6 +867,32 @@ extern "C" {
 V8 if desired. */
 #ifndef configENABLE_BACKWARD_COMPATIBILITY
     #define configENABLE_BACKWARD_COMPATIBILITY 1
+#endif
+
+#ifndef configPRINTF
+    /* configPRINTF() was not defined, so define it away to nothing.  To use
+    configPRINTF() then define it as follows (where MyPrintFunction() is
+    provided by the application writer):
+
+    void MyPrintFunction(const char *pcFormat, ...);
+    #define configPRINTF(X)   MyPrintFunction X
+
+    Then call like a standard printf() function, but placing brackets around
+    all parameters so they are passed as a single parameter.  For example:
+    configPRINTF(("Value = %d", MyVariable)); */
+    #define configPRINTF(X)
+#endif
+
+#ifndef configMAX
+    /* The application writer has not provided their own MAX macro, so define
+    the following generic implementation. */
+    #define configMAX(a, b) (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef configMIN
+    /* The application writer has not provided their own MAX macro, so define
+    the following generic implementation. */
+    #define configMIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
 #if configENABLE_BACKWARD_COMPATIBILITY == 1
@@ -807,23 +946,24 @@ point support. */
  * real objects are used for this purpose.  The dummy list and list item
  * structures below are used for inclusion in such a dummy structure.
  */
-struct xSTATIC_LIST_ITEM {
+struct xSTATIC_LIST_ITEM
+{
     TickType_t xDummy1;
     void *pvDummy2[ 4 ];
 };
-
 typedef struct xSTATIC_LIST_ITEM StaticListItem_t;
 
 /* See the comments above the struct xSTATIC_LIST_ITEM definition. */
-struct xSTATIC_MINI_LIST_ITEM {
+struct xSTATIC_MINI_LIST_ITEM
+{
     TickType_t xDummy1;
     void *pvDummy2[ 2 ];
 };
-
 typedef struct xSTATIC_MINI_LIST_ITEM StaticMiniListItem_t;
 
 /* See the comments above the struct xSTATIC_LIST_ITEM definition. */
-typedef struct xSTATIC_LIST {
+typedef struct xSTATIC_LIST
+{
     UBaseType_t uxDummy1;
     void *pvDummy2;
     StaticMiniListItem_t xDummy3;
@@ -842,7 +982,8 @@ typedef struct xSTATIC_LIST {
  * are set.  Its contents are somewhat obfuscated in the hope users will
  * recognise that it would be unwise to make direct use of the structure members.
  */
-typedef struct xSTATIC_TCB {
+typedef struct xSTATIC_TCB
+{
     void                *pxDummy1;
     #if (portUSING_MPU_WRAPPERS == 1)
         xMPU_SETTINGS   xDummy2;
@@ -851,7 +992,7 @@ typedef struct xSTATIC_TCB {
     UBaseType_t         uxDummy5;
     void                *pxDummy6;
     uint8_t             ucDummy7[ configMAX_TASK_NAME_LEN ];
-    #if (portSTACK_GROWTH > 0)
+    #if ((portSTACK_GROWTH > 0) || (configRECORD_STACK_HIGH_ADDRESS == 1))
         void            *pxDummy8;
     #endif
     #if (portCRITICAL_NESTING_IN_TCB == 1)
@@ -879,8 +1020,12 @@ typedef struct xSTATIC_TCB {
         uint32_t        ulDummy18;
         uint8_t         ucDummy19;
     #endif
-    #if ((configSUPPORT_STATIC_ALLOCATION == 1) && (configSUPPORT_DYNAMIC_ALLOCATION == 1))
+    #if (((configSUPPORT_STATIC_ALLOCATION == 1) && (configSUPPORT_DYNAMIC_ALLOCATION == 1)) || (portUSING_MPU_WRAPPERS == 1))
         uint8_t         uxDummy20;
+    #endif
+
+    #if (INCLUDE_xTaskAbortDelay == 1)
+        uint8_t ucDummy21;
     #endif
 
 } StaticTask_t;
@@ -899,10 +1044,12 @@ typedef struct xSTATIC_TCB {
  * users will recognise that it would be unwise to make direct use of the
  * structure members.
  */
-typedef struct xSTATIC_QUEUE {
+typedef struct xSTATIC_QUEUE
+{
     void *pvDummy1[ 3 ];
 
-    union {
+    union
+    {
         void *pvDummy2;
         UBaseType_t uxDummy2;
     } u;
@@ -925,7 +1072,6 @@ typedef struct xSTATIC_QUEUE {
     #endif
 
 } StaticQueue_t;
-
 typedef StaticQueue_t StaticSemaphore_t;
 
 /*
@@ -942,7 +1088,8 @@ typedef StaticQueue_t StaticSemaphore_t;
  * obfuscated in the hope users will recognise that it would be unwise to make
  * direct use of the structure members.
  */
-typedef struct xSTATIC_EVENT_GROUP {
+typedef struct xSTATIC_EVENT_GROUP
+{
     TickType_t xDummy1;
     StaticList_t xDummy2;
 
@@ -970,8 +1117,8 @@ typedef struct xSTATIC_EVENT_GROUP {
  * the hope users will recognise that it would be unwise to make direct use of
  * the structure members.
  */
-
-typedef struct xSTATIC_TIMER {
+typedef struct xSTATIC_TIMER
+{
     void                *pvDummy1;
     StaticListItem_t    xDummy2;
     TickType_t          xDummy3;
@@ -986,6 +1133,33 @@ typedef struct xSTATIC_TIMER {
     #endif
 
 } StaticTimer_t;
+
+/*
+* In line with software engineering best practice, especially when supplying a
+* library that is likely to change in future versions, FreeRTOS implements a
+* strict data hiding policy.  This means the stream buffer structure used
+* internally by FreeRTOS is not accessible to application code.  However, if
+* the application writer wants to statically allocate the memory required to
+* create a stream buffer then the size of the stream buffer object needs to be
+* know.  The StaticStreamBuffer_t structure below is provided for this purpose.
+* Its size and alignment requirements are guaranteed to match those of the
+* genuine structure, no matter which architecture is being used, and no matter
+* how the values in FreeRTOSConfig.h are set.  Its contents are somewhat
+* obfuscated in the hope users will recognise that it would be unwise to make
+* direct use of the structure members.
+*/
+typedef struct xSTATIC_STREAM_BUFFER
+{
+    size_t uxDummy1[ 4 ];
+    void * pvDummy2[ 3 ];
+    uint8_t ucDummy3;
+    #if (configUSE_TRACE_FACILITY == 1)
+        UBaseType_t uxDummy4;
+    #endif
+} StaticStreamBuffer_t;
+
+/* Message buffers are built on stream buffers. */
+typedef StaticStreamBuffer_t StaticMessageBuffer_t;
 
 #ifdef __cplusplus
 }

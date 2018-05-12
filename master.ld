@@ -13,12 +13,11 @@ EXTERN(vector_table)
 ENTRY(main)
 
 SECTIONS {
-    __text_start = .;
     .text : {
-        KEEP(*(.vectors))    /* Vector table */
-        *(.text*)      /* Program code */
+        KEEP(*(.vectors))       /* Vector table */
+        *(.text*)               /* Program code */
         . = ALIGN(4);
-        *(.rodata*)    /* Read-only data */
+        *(.rodata*)             /* Read-only data */
         . = ALIGN(4);
     } >FLASH
 

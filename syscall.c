@@ -14,7 +14,7 @@
 
 #include <syscall.h>
 
-extern QueueHandle_t usart_txq;
+extern QueueHandle_t usart_q;
 
 #undef errno
 extern int errno;
@@ -86,7 +86,7 @@ int _write(int file, char *ptr, int len) {
     int i;
     if (file == STDOUT | file == STDERR) {
         for (i = 0; i < len; i++) {
-            xQueueSend(usart_txq, &ptr[i], portMAX_DELAY);
+            xQueueSend(usart_q, &ptr[i], portMAX_DELAY);
         }
         return len;
     }

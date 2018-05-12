@@ -1,7 +1,30 @@
 /*
-    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
-    All rights reserved
-*/
+ * FreeRTOS Kernel V10.0.0
+ * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software. If you wish to use our Amazon
+ * FreeRTOS name, please do so in a fair use way that does not cause confusion.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://www.FreeRTOS.org
+ * http://aws.amazon.com/freertos
+ *
+ * 1 tab == 4 spaces!
+ */
 
 
 /*
@@ -18,8 +41,8 @@ all the API functions to use the MPU wrappers.  That should only be done when
 task.h is included from an application file. */
 #define MPU_WRAPPERS_INCLUDED_FROM_API_FILE
 
-#include <FreeRTOS.h>
-#include <task.h>
+#include "FreeRTOS.h"
+#include "task.h"
 
 #undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE
 
@@ -35,23 +58,26 @@ task.h is included from an application file. */
 #if (configAPPLICATION_ALLOCATED_HEAP == 1)
     /* The application writer has already defined the array used for the RTOS
     heap - probably so it can be placed in a special segment or address. */
-extern uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
+    extern uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
 #else
-static uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
+    static uint8_t ucHeap[ configTOTAL_HEAP_SIZE ];
 #endif /* configAPPLICATION_ALLOCATED_HEAP */
 
+/* Index into the ucHeap array. */
 static size_t xNextFreeByte = (size_t) 0;
 
 /*-----------------------------------------------------------*/
 
-void *pvPortMalloc(size_t xWantedSize) {
-    void *pvReturn = NULL;
-    static uint8_t *pucAlignedHeap = NULL;
+void *pvPortMalloc(size_t xWantedSize)
+{
+void *pvReturn = NULL;
+static uint8_t *pucAlignedHeap = NULL;
 
     /* Ensure that blocks are always aligned to the required number of bytes. */
     #if (portBYTE_ALIGNMENT != 1)
     {
-        if (xWantedSize & portBYTE_ALIGNMENT_MASK) {
+        if(xWantedSize & portBYTE_ALIGNMENT_MASK)
+        {
             /* Byte alignment required. */
             xWantedSize += (portBYTE_ALIGNMENT - (xWantedSize & portBYTE_ALIGNMENT_MASK));
         }
@@ -60,28 +86,30 @@ void *pvPortMalloc(size_t xWantedSize) {
 
     vTaskSuspendAll();
     {
-        if (pucAlignedHeap == NULL) {
+        if(pucAlignedHeap == NULL)
+        {
             /* Ensure the heap starts on a correctly aligned boundary. */
-            pucAlignedHeap =
-                (uint8_t *) (((portPOINTER_SIZE_TYPE) & ucHeap[portBYTE_ALIGNMENT]) &
-                             (~((portPOINTER_SIZE_TYPE) portBYTE_ALIGNMENT_MASK)));
+            pucAlignedHeap = (uint8_t *) (((portPOINTER_SIZE_TYPE) &ucHeap[ portBYTE_ALIGNMENT ]) & (~((portPOINTER_SIZE_TYPE) portBYTE_ALIGNMENT_MASK)));
         }
 
         /* Check there is enough room left for the allocation. */
-        if (((xNextFreeByte + xWantedSize) < configADJUSTED_HEAP_SIZE) && ((xNextFreeByte + xWantedSize) > xNextFreeByte)) {    /* Check for overflow. */
+        if(((xNextFreeByte + xWantedSize) < configADJUSTED_HEAP_SIZE) &&
+            ((xNextFreeByte + xWantedSize) > xNextFreeByte))/* Check for overflow. */
+        {
             /* Return the next free byte then increment the index past this
-               block. */
+            block. */
             pvReturn = pucAlignedHeap + xNextFreeByte;
             xNextFreeByte += xWantedSize;
         }
 
         traceMALLOC(pvReturn, xWantedSize);
     }
-    (void)xTaskResumeAll();
+    (void) xTaskResumeAll();
 
     #if (configUSE_MALLOC_FAILED_HOOK == 1)
     {
-        if (pvReturn == NULL) {
+        if(pvReturn == NULL)
+        {
             extern void vApplicationMallocFailedHook(void);
             vApplicationMallocFailedHook();
         }
@@ -90,28 +118,31 @@ void *pvPortMalloc(size_t xWantedSize) {
 
     return pvReturn;
 }
-
 /*-----------------------------------------------------------*/
 
-void vPortFree(void *pv) {
+void vPortFree(void *pv)
+{
     /* Memory cannot be freed using this scheme.  See heap_2.c, heap_3.c and
-       heap_4.c for alternative implementations, and the memory management pages of
-       http://www.FreeRTOS.org for more information. */
-    (void)pv;
+    heap_4.c for alternative implementations, and the memory management pages of
+    http://www.FreeRTOS.org for more information. */
+    (void) pv;
 
     /* Force an assert as it is invalid to call this function. */
     configASSERT(pv == NULL);
 }
-
 /*-----------------------------------------------------------*/
 
-void vPortInitialiseBlocks(void) {
+void vPortInitialiseBlocks(void)
+{
     /* Only required when static memory is not cleared. */
     xNextFreeByte = (size_t) 0;
 }
-
 /*-----------------------------------------------------------*/
 
-size_t xPortGetFreeHeapSize(void) {
+size_t xPortGetFreeHeapSize(void)
+{
     return (configADJUSTED_HEAP_SIZE - xNextFreeByte);
 }
+
+
+

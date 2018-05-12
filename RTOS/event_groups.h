@@ -1,7 +1,30 @@
 /*
-    FreeRTOS V9.0.0 - Copyright (C) 2016 Real Time Engineers Ltd.
-    All rights reserved
-*/
+ * FreeRTOS Kernel V10.0.0
+ * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software. If you wish to use our Amazon
+ * FreeRTOS name, please do so in a fair use way that does not cause confusion.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * http://www.FreeRTOS.org
+ * http://aws.amazon.com/freertos
+ *
+ * 1 tab == 4 spaces!
+ */
 
 #ifndef EVENT_GROUPS_H
 #define EVENT_GROUPS_H
@@ -11,7 +34,7 @@
 #endif
 
 /* FreeRTOS includes. */
-#include <timers.h>
+#include "timers.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -180,7 +203,7 @@ typedef TickType_t EventBits_t;
 /**
  * event_groups.h
  *<pre>
-    EventBits_t xEventGroupWaitBits(  EventGroupHandle_t xEventGroup,
+    EventBits_t xEventGroupWaitBits(   EventGroupHandle_t xEventGroup,
                                         const EventBits_t uxBitsToWaitFor,
                                         const BaseType_t xClearOnExit,
                                         const BaseType_t xWaitForAllBits,
@@ -459,8 +482,7 @@ EventBits_t xEventGroupClearBits(EventGroupHandle_t xEventGroup, const EventBits
  * \defgroup xEventGroupSetBits xEventGroupSetBits
  * \ingroup EventGroup
  */
-EventBits_t xEventGroupSetBits(EventGroupHandle_t xEventGroup,
-                               const EventBits_t uxBitsToSet) PRIVILEGED_FUNCTION;
+EventBits_t xEventGroupSetBits(EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSet) PRIVILEGED_FUNCTION;
 
 /**
  * event_groups.h
@@ -535,17 +557,15 @@ EventBits_t xEventGroupSetBits(EventGroupHandle_t xEventGroup,
  * \ingroup EventGroup
  */
 #if (configUSE_TRACE_FACILITY == 1)
-BaseType_t xEventGroupSetBitsFromISR(EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSet,
-                                     BaseType_t * pxHigherPriorityTaskWoken) PRIVILEGED_FUNCTION;
+    BaseType_t xEventGroupSetBitsFromISR(EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSet, BaseType_t *pxHigherPriorityTaskWoken) PRIVILEGED_FUNCTION;
 #else
-#define xEventGroupSetBitsFromISR(xEventGroup, uxBitsToSet, pxHigherPriorityTaskWoken) \
-        xTimerPendFunctionCallFromISR(vEventGroupSetBitsCallback, (void *) xEventGroup, (uint32_t) uxBitsToSet, pxHigherPriorityTaskWoken)
+    #define xEventGroupSetBitsFromISR(xEventGroup, uxBitsToSet, pxHigherPriorityTaskWoken) xTimerPendFunctionCallFromISR(vEventGroupSetBitsCallback, (void *) xEventGroup, (uint32_t) uxBitsToSet, pxHigherPriorityTaskWoken)
 #endif
 
 /**
  * event_groups.h
  *<pre>
-    EventBits_t xEventGroupSync(  EventGroupHandle_t xEventGroup,
+    EventBits_t xEventGroupSync(   EventGroupHandle_t xEventGroup,
                                     const EventBits_t uxBitsToSet,
                                     const EventBits_t uxBitsToWaitFor,
                                     TickType_t xTicksToWait);
@@ -666,9 +686,8 @@ BaseType_t xEventGroupSetBitsFromISR(EventGroupHandle_t xEventGroup, const Event
  * \defgroup xEventGroupSync xEventGroupSync
  * \ingroup EventGroup
  */
-EventBits_t xEventGroupSync(EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSet,
-                            const EventBits_t uxBitsToWaitFor,
-                            TickType_t xTicksToWait) PRIVILEGED_FUNCTION;
+EventBits_t xEventGroupSync(EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSet, const EventBits_t uxBitsToWaitFor, TickType_t xTicksToWait) PRIVILEGED_FUNCTION;
+
 
 /**
  * event_groups.h
@@ -725,7 +744,8 @@ void vEventGroupClearBitsCallback(void *pvEventGroup, const uint32_t ulBitsToCle
 
 
 #if (configUSE_TRACE_FACILITY == 1)
-UBaseType_t uxEventGroupGetNumber(void* xEventGroup) PRIVILEGED_FUNCTION;
+    UBaseType_t uxEventGroupGetNumber(void* xEventGroup) PRIVILEGED_FUNCTION;
+    void vEventGroupSetNumber(void* xEventGroup, UBaseType_t uxEventGroupNumber) PRIVILEGED_FUNCTION;
 #endif
 
 #ifdef __cplusplus
