@@ -1,5 +1,5 @@
 
-/* $Id$ */
+/* Author, Copyright: Oleg Borodin <onborodin@gmail.com> 2018 */
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
@@ -57,6 +57,15 @@ extern uint32_t rcc_ahb_frequency;
 #define configLIBRARY_KERNEL_INTERRUPT_PRIORITY 15
 
 
+#define configSUPPORT_DYNAMIC_ALLOCATION        1
+#define configSUPPORT_STATIC_ALLOCATION         1
+
+#define configUSE_TIMERS                        1
+#define configTIMER_TASK_PRIORITY               (configMAX_PRIORITIES - 1)
+#define configTIMER_QUEUE_LENGTH                32
+#define configTIMER_TASK_STACK_DEPTH            configMINIMAL_STACK_SIZE
+
+
 //#define configAPPLICATION_ALLOCATED_HEAP              0
 //#define configASSERT(x)
 //#define configASSERT_DEFINED                          0
@@ -67,8 +76,6 @@ extern uint32_t rcc_ahb_frequency;
 //#define configPOST_SLEEP_PROCESSING(x)
 //#define configPRE_SLEEP_PROCESSING(x)
 //#define configQUEUE_REGISTRY_SIZE                     0U
-//#define configSUPPORT_DYNAMIC_ALLOCATION              1
-//#define configSUPPORT_STATIC_ALLOCATION               1
 //#define configUSE_APPLICATION_TASK_TAG                0
 //#define configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES     0
 //#define configUSE_MALLOC_FAILED_HOOK                  0
@@ -78,7 +85,6 @@ extern uint32_t rcc_ahb_frequency;
 //#define configUSE_STATS_FORMATTING_FUNCTIONS          1
 //#define configUSE_TASK_NOTIFICATIONS                  1
 //#define configUSE_TICKLESS_IDLE                       0
-//#define configUSE_TIMERS                              1
 //#define configUSE_TIME_SLICING                        1
 
 #endif

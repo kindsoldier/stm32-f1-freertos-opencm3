@@ -27,6 +27,7 @@ MASTER_OBJS+= syscall.o
 MASTER_OBJS+= opencm3.o
 MASTER_OBJS+= st7735.o
 MASTER_OBJS+= console.o
+MASTER_OBJS+= static.o
 
 RTOS_OBJS+= $(RTOS_LOC)/croutine.o
 RTOS_OBJS+= $(RTOS_LOC)/event_groups.o
