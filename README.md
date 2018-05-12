@@ -7,6 +7,8 @@ Released
 - RTOS interrupt glue code for opencm3
 - work with newlib malloc()
 - ST7735 based console
+- ADC with DMA
+- USART loopback
 
 ### Memory map
 
@@ -41,8 +43,4 @@ No guarantees. This code is given only as an sample.
 Also can see http://wiki.unix7.org/mcu/start
 
 ![](http://wiki.unix7.org/_media/mcu/img_20180422_144519-480.jpg)
-
-
-
-
 

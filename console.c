@@ -17,8 +17,6 @@ font_t basefont = {
     .bitmap = basefont_bitmap
 };
 
-//uint8_t console_buffer[CONSOLE_WIDTH * CONSOLE_HEIGHT];
-
 console_t console = {
     .width = CONSOLE_WIDTH,
     .height = CONSOLE_HEIGHT,
@@ -29,7 +27,6 @@ console_t console = {
     .xshift = 0,
     .yshift = 0,
     .font = &basefont,
-//    .buffer = console_buffer,
     .buffer_len = CONSOLE_WIDTH * CONSOLE_HEIGHT + 1
 };
 
