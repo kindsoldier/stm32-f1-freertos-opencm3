@@ -39,7 +39,7 @@ volatile QueueHandle_t console_q;
 
 uint32_t sp;
 
-#define CONSOLE_STR_LEN 16
+#define CONSOLE_STR_LEN 12
 
 typedef struct console_message_t {
     uint8_t row;
@@ -190,7 +190,6 @@ int16_t get_mcu_temp(void) {
 
 
 /* TASKs */
-
 static void usart_task(void *args __attribute__ ((unused))) {
     uint8_t c;
     while (1) {
@@ -215,6 +214,50 @@ static void console_task(void *args __attribute__ ((unused))) {
     }
 }
 
+
+void print_stats(void) {
+    #define MAX_TASK_COUNT  6
+    volatile UBaseType_t task_count = MAX_TASK_COUNT;
+    TaskStatus_t *status_array = pvPortMalloc(task_count * sizeof(TaskStatus_t));
+
+    if (status_array != NULL) {
+
+        uint32_t total_time, stat_as_percentage;
+        task_count = uxTaskGetSystemState(status_array, task_count, &total_time);
+
+        total_time /= 100UL;
+        if (total_time > 0) {
+            uint16_t row = 3;
+            for (UBaseType_t x = 0; x < task_count; x++) {
+                stat_as_percentage = status_array[x].ulRunTimeCounter / total_time;
+
+                if (stat_as_percentage > 0UL) {
+                    //printf("%s\t%lu\t\t%lu%%\r\n",
+                    //       status_array[x].pcTaskName,
+                    //       status_array[x].ulRunTimeCounter,
+                    //       stat_as_percentage);
+                    #define CONSOLE_MAX_STAT_ROW 8
+                    if (row < CONSOLE_MAX_STAT_ROW) {
+                        console_message_t msg;
+                        msg.row = row;
+                        msg.col = 0;
+                        snprintf(msg.str, CONSOLE_STR_LEN, "%-6s %3d",
+                                 status_array[x].pcTaskName,
+                                 status_array[x].ulRunTimeCounter / total_time);
+                        xQueueSend(console_q, &msg, portMAX_DELAY);
+                    }
+                    row++;
+                }
+            }
+        } else {
+            mtCOVERAGE_TEST_MARKER();
+        }
+        vPortFree(status_array);
+    } else {
+        mtCOVERAGE_TEST_MARKER();
+    }
+}
+
 static void counter_task(void *args __attribute__ ((unused))) {
 
     uint32_t i = 0;
@@ -224,6 +267,7 @@ static void counter_task(void *args __attribute__ ((unused))) {
         msg.col = 0;
         snprintf(msg.str, CONSOLE_STR_LEN, "0x%08X", i);
         xQueueSend(console_q, &msg, portMAX_DELAY);
+        print_stats();
         //taskYIELD();
         vTaskDelay(pdMS_TO_TICKS(100));
         i++;
@@ -275,11 +319,11 @@ int main(void) {
     usart_q = xQueueCreate(UART_QUEUE_LEN, sizeof(uint8_t));
     console_q = xQueueCreate(CONSOLE_QUEUE_LEN, sizeof(console_message_t));
 
-    xTaskCreate(usart_task, "UART", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
+    xTaskCreate(usart_task, "UAR", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
     xTaskCreate(counter_task, "LOG", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, NULL);
-    xTaskCreate(console_task, "CONSOLE", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 8,
+    xTaskCreate(console_task, "CON", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 8,
                 NULL);
-    xTaskCreate(temp_task, "TEMP", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 7, NULL);
+    xTaskCreate(temp_task, "TMP", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 7, NULL);
 
 
     vTaskStartScheduler();

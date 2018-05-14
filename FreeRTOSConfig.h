@@ -58,7 +58,7 @@ extern uint32_t rcc_ahb_frequency;
 
 
 #define configSUPPORT_DYNAMIC_ALLOCATION        1
-#define configSUPPORT_STATIC_ALLOCATION         1
+#define configSUPPORT_STATIC_ALLOCATION         0
 
 #define configUSE_TIMERS                        1
 #define configTIMER_TASK_PRIORITY               (configMAX_PRIORITIES - 1)
@@ -66,12 +66,17 @@ extern uint32_t rcc_ahb_frequency;
 #define configTIMER_TASK_STACK_DEPTH            configMINIMAL_STACK_SIZE
 
 
+#define configGENERATE_RUN_TIME_STATS           1
+#define configUSE_TRACE_FACILITY                1
+#define portGET_RUN_TIME_COUNTER_VALUE          xTaskGetTickCount
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() /* */
+#define configUSE_STATS_FORMATTING_FUNCTIONS    1
+
 //#define configAPPLICATION_ALLOCATED_HEAP              0
 //#define configASSERT(x)
 //#define configASSERT_DEFINED                          0
 //#define configCHECK_FOR_STACK_OVERFLOW                0
 //#define configEXPECTED_IDLE_TIME_BEFORE_SLEEP         2
-//#define configGENERATE_RUN_TIME_STATS                 1
 //#define configNUM_THREAD_LOCAL_STORAGE_POINTERS       0
 //#define configPOST_SLEEP_PROCESSING(x)
 //#define configPRE_SLEEP_PROCESSING(x)
