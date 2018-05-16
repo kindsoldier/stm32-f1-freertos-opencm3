@@ -2,7 +2,7 @@
 /* Author, Copyright: Oleg Borodin <onborodin@gmail.com> 2018 */
  
 MEMORY {
-    FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 64K
+    FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 128K
     SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
 }
 

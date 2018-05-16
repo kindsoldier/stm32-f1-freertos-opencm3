@@ -57,7 +57,7 @@
 
 
 #define LCD_TFTWIDTH  127
-#define LCD_TFTHEIGHT 127
+#define LCD_TFTHEIGHT 159
 
 
 #define LCD_565BLACK     0x0000

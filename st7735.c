@@ -36,6 +36,9 @@
 #define LCD_A0_PORT     GPIOB
 #define LCD_A0_PIN      GPIO1
 
+//#define LCD_RESET_PORT  GPIOB
+//#define LCD_RESET_PIN   GPIO2
+
 #else
 #error Please define USE_SPI=1 or USE_SPI=2
 #endif
@@ -130,6 +133,8 @@ void lcd_hard_reset(void) {
 void lcd_setup(void) {
 
     lcd_hard_reset();
+    _delay_ms(500);
+
     /* 1: Software reset, 0 args, w/delay */
     lcd_write_command(LCD_SWRESET);
     /* 150 ms delay */
@@ -292,8 +297,8 @@ void lcd_write_rect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint32_t color) 
     spi_write_word_array(c, (w + 1) * (h + 1));
 }
 
-#define LCD_DELTA_X     2
-#define LCD_DELTA_Y     3
+#define LCD_DELTA_X     0
+#define LCD_DELTA_Y     0
 
 void lcd_addr_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
 

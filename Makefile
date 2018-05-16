@@ -17,17 +17,11 @@ LDFLAGS+= -T master.ld
 
 LDFLAGS+= -Wl,-Map=master.map
 LDFLAGS+= -Wl,--cref -Wl,--gc-sections
-LDFLAGS+= -Wl,--start-group -lc -lgcc -Wl,--end-group
+LDFLAGS+= -Wl,--start-group -lc -lm -lgcc -Wl,--end-group
 LDFLAGS+= -lopencm3_stm32f1
 LDFLAGS+= -L${RTOS_LOC} -lrtos
 
 
-MASTER_OBJS+= master.o
-MASTER_OBJS+= syscall.o
-MASTER_OBJS+= opencm3.o
-MASTER_OBJS+= st7735.o
-MASTER_OBJS+= console.o
-MASTER_OBJS+= static.o
 
 RTOS_OBJS+= $(RTOS_LOC)/croutine.o
 RTOS_OBJS+= $(RTOS_LOC)/event_groups.o
@@ -38,6 +32,16 @@ RTOS_OBJS+= $(RTOS_LOC)/queue.o
 RTOS_OBJS+= $(RTOS_LOC)/stream_buffer.o
 RTOS_OBJS+= $(RTOS_LOC)/tasks.o
 RTOS_OBJS+= $(RTOS_LOC)/timers.o
+
+MASTER_OBJS+= master.o
+MASTER_OBJS+= syscall.o
+MASTER_OBJS+= opencm3.o
+MASTER_OBJS+= st7735.o
+MASTER_OBJS+= console.o
+MASTER_OBJS+= static.o
+MASTER_OBJS+= i2creg.o
+MASTER_OBJS+= mpu6050.o
+
 
 all: rtos master.bin
 

@@ -29,9 +29,25 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
+#include <timers.h>
 
 #include <st7735.h>
 #include <console.h>
+
+#include <i2creg.h>
+#include <mpu6050.h>
+
+mpu_t mpu = {
+    .i2c = I2C1,
+    .addr = 0x68,
+    .q0 = 1.0,
+    .q1 = 0.0,
+    .q2 = 0.0,
+    .q3 = 0.0,
+    .integralFBx = 0.0,
+    .integralFBy = 0.0,
+    .integralFBz = 0.0
+};
 
 
 volatile QueueHandle_t usart_q;
@@ -39,7 +55,8 @@ volatile QueueHandle_t console_q;
 
 uint32_t sp;
 
-#define CONSOLE_STR_LEN 12
+#define CONSOLE_STR_LEN 18
+#define STR_LEN 16
 
 typedef struct console_message_t {
     uint8_t row;
@@ -56,11 +73,13 @@ static void clock_setup(void) {
     rcc_clock_setup_in_hse_8mhz_out_72mhz();
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_GPIOB);
+    rcc_periph_clock_enable(RCC_GPIOC);
     rcc_periph_clock_enable(RCC_AFIO);
     rcc_periph_clock_enable(RCC_USART1);
     rcc_periph_clock_enable(RCC_SPI2);
     rcc_periph_clock_enable(RCC_DMA1);
     rcc_periph_clock_enable(RCC_ADC1);
+    rcc_periph_clock_enable(RCC_I2C1);
 }
 
 
@@ -114,14 +133,14 @@ static void usart_puts(uint8_t * str) {
     }
 }
 
-void usart_putc(uint8_t c) {
+static void usart_putc(uint8_t c) {
     usart_send_blocking(USART1, c);
 }
 
 /* DMA1 */
 volatile uint16_t adc_res[4];
 
-void dma_setup(void) {
+static void dma_setup(void) {
     dma_disable_channel(DMA1, DMA_CHANNEL1);
 
     dma_enable_circular_mode(DMA1, DMA_CHANNEL1);
@@ -141,7 +160,7 @@ void dma_setup(void) {
 
 
 /* ADC1 */
-void adc_setup(void) {
+static void adc_setup(void) {
     static uint8_t channel_seq[16];
 
     gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_ANALOG, GPIO2);
@@ -179,7 +198,7 @@ void dma1_channel1_isr(void) {
     dma_clear_interrupt_flags(DMA1, DMA_CHANNEL1, DMA_IFCR_CGIF1);
 }
 
-int16_t get_mcu_temp(void) {
+static int16_t get_mcu_temp(void) {
     float V_25 = 1.45;
     float Slope = 4.3e-3;
     float Vref = 1.78;
@@ -188,6 +207,17 @@ int16_t get_mcu_temp(void) {
     return (int16_t) temp;
 }
 
+
+/* I2C1 */
+
+static void i2c_setup(void) {
+    gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN, GPIO_I2C1_SCL | GPIO_I2C1_SDA);
+
+    i2c_peripheral_disable(I2C1);
+    i2c_reset(I2C1);
+    i2c_set_speed(I2C1, i2c_speed_sm_100k, I2C_CR2_FREQ_36MHZ);
+    i2c_peripheral_enable(I2C1);
+}
 
 /* TASKs */
 static void usart_task(void *args __attribute__ ((unused))) {
@@ -216,7 +246,7 @@ static void console_task(void *args __attribute__ ((unused))) {
 
 
 void print_stats(void) {
-    #define MAX_TASK_COUNT  6
+#define MAX_TASK_COUNT  6
     volatile UBaseType_t task_count = MAX_TASK_COUNT;
     TaskStatus_t *status_array = pvPortMalloc(task_count * sizeof(TaskStatus_t));
 
@@ -232,30 +262,21 @@ void print_stats(void) {
                 stat_as_percentage = status_array[x].ulRunTimeCounter / total_time;
 
                 if (stat_as_percentage > 0UL) {
-                    //printf("%s\t%lu\t\t%lu%%\r\n",
-                    //       status_array[x].pcTaskName,
-                    //       status_array[x].ulRunTimeCounter,
-                    //       stat_as_percentage);
                     #define CONSOLE_MAX_STAT_ROW 8
                     if (row < CONSOLE_MAX_STAT_ROW) {
                         console_message_t msg;
                         msg.row = row;
                         msg.col = 0;
-                        snprintf(msg.str, CONSOLE_STR_LEN, "%-6s %3d",
-                                 status_array[x].pcTaskName,
-                                 status_array[x].ulRunTimeCounter / total_time);
+                        snprintf(msg.str, CONSOLE_STR_LEN, "%-4s %3d %3u",
+                                 status_array[x].pcTaskName, stat_as_percentage, status_array[x].usStackHighWaterMark);
                         xQueueSend(console_q, &msg, portMAX_DELAY);
                     }
                     row++;
                 }
             }
-        } else {
-            mtCOVERAGE_TEST_MARKER();
         }
-        vPortFree(status_array);
-    } else {
-        mtCOVERAGE_TEST_MARKER();
     }
+    vPortFree(status_array);
 }
 
 static void counter_task(void *args __attribute__ ((unused))) {
@@ -275,22 +296,77 @@ static void counter_task(void *args __attribute__ ((unused))) {
 }
 
 static void temp_task(void *args __attribute__ ((unused))) {
-
-    uint32_t i = 0;
     console_message_t msg;
     while (1) {
+
         msg.row = 2;
         msg.col = 0;
-        snprintf(msg.str, CONSOLE_STR_LEN, "Tmcu %6u", get_mcu_temp());
+
+        #if 0
+        uint8_t str[20];
+
+        int16_t ax, ay, az, gx, gy, gz;
+        mpu_get_raw_data(&mpu, &ax, &ay, &az, &gx, &gy, &gz);
+
+        snprintf(str, STR_LEN, "%8ld", ax);
+        console_xyputs(&console, 4, 0, str);
+
+        snprintf(str, STR_LEN, "%8ld", ay);
+        console_xyputs(&console, 5, 0, str);
+        #endif
+
+        #if 0
+        double roll, pitch, yaw;
+        mpu_get_roll_pitch_yaw(&mpu, &roll, &pitch, &yaw);
+
+        snprintf(str, STR_LEN, "R %6ld", (int32_t)(roll * 62.5));
+        console_xyputs(&console, 3, 0, str);
+
+        snprintf(str, STR_LEN, "P %6ld", (int32_t)(pitch * 62.5));
+        console_xyputs(&console, 4, 0, str);
+        #endif
+
+        double roll, pitch, yaw;
+        mpu_get_roll_pitch_yaw(&mpu, &roll, &pitch, &yaw);
+        snprintf(msg.str, CONSOLE_STR_LEN, "Rl=%+4d Pi=%+4d", (int32_t)(roll * 62.5), (int32_t)(pitch * 62.5));
+
+        //snprintf(msg.str, CONSOLE_STR_LEN, "Tmcu %6u", get_mcu_temp());
+        //snprintf(msg.str, CONSOLE_STR_LEN, "I2C %6u", i2c_read_reg(I2C1, 0x68, 0x75));
         xQueueSend(console_q, &msg, portMAX_DELAY);
-        //taskYIELD();
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        i++;
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
+
+#define TIMER_ID 1
+
+TimerHandle_t timer;
+
+const unsigned portBASE_TYPE timer_id = TIMER_ID;
+unsigned int uiAutoReloadTimerPeriod = 1 / portTICK_PERIOD_MS;
+
+void timer_cb(TimerHandle_t xTimer) {
+    volatile unsigned portBASE_TYPE *timer_id;
+    timer_id = pvTimerGetTimerID(xTimer);
+    switch (*timer_id) {
+        case TIMER_ID:
+            mpu_update_quaternion(&mpu);
+            //xTimerStart(timer, 0);
+            break;
     }
 }
 
 
+
+
 /* MAIN */
+
+#define IRQ2NVIC_PRIOR(x)       ((x) << 4)
+#define UART_QUEUE_LEN      1024
+#define CONSOLE_QUEUE_LEN   8
+
+xTaskHandle usart_task_h, counter_task_h, console_task_h;
+
+void reset_handler();
 
 int main(void) {
     clock_setup();
@@ -300,7 +376,6 @@ int main(void) {
 
 
     scb_set_priority_grouping(SCB_AIRCR_PRIGROUP_GROUP16_NOSUB);
-#define IRQ2NVIC_PRIOR(x)       ((x) << 4)
     nvic_set_priority(NVIC_SYSTICK_IRQ, IRQ2NVIC_PRIOR(15));
     nvic_set_priority(NVIC_USART1_IRQ, IRQ2NVIC_PRIOR(configMAX_PRIORITIES - 1));
 
@@ -310,23 +385,45 @@ int main(void) {
     lcd_setup();
     lcd_clear();
 
+    i2c_setup();
+    mpu_setup(&mpu);
+
     console_xyputs(&console, 0, 0, "FreeRTOS STM32");
     console_xyputs(&console, 1, 0, "READY>");
 
-#define UART_QUEUE_LEN      1024
-#define CONSOLE_QUEUE_LEN   8
+    delay(100);
+
+#if 0
+    while (1) {
+        uint8_t res = 12;
+        res = i2c_read_reg(I2C1, 0x68, 0x75);
+        uint8_t str[20];
+        snprintf(str, 10, "0x%2X", res);
+        console_xyputs(&console, 3, 0, str);
+
+        #if 0
+        uint8_t rdata = i2c_read_reg(I2C1, 0x68, 0x75);
+        snprintf(str, STR_LEN, "R %02X", rdata);
+        console_xyputs(&console, 4, 0, str);
+        #endif
+
+    }
+#endif
 
     usart_q = xQueueCreate(UART_QUEUE_LEN, sizeof(uint8_t));
     console_q = xQueueCreate(CONSOLE_QUEUE_LEN, sizeof(console_message_t));
 
-    xTaskCreate(usart_task, "UAR", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, NULL);
-    xTaskCreate(counter_task, "LOG", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, NULL);
-    xTaskCreate(console_task, "CON", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 8,
-                NULL);
-    xTaskCreate(temp_task, "TMP", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 7, NULL);
+    xTaskCreate(usart_task, "UAR", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, usart_task_h);
+    xTaskCreate(counter_task, "LOG", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, counter_task_h);
+    xTaskCreate(console_task, "CON", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, console_task_h);
+    xTaskCreate(temp_task, "TMP", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, NULL);
 
+    timer = xTimerCreate("TIMER", 20 / portTICK_PERIOD_MS, pdTRUE, (void*) &timer_id, timer_cb);
+    xTimerReset(timer, 0);
 
     vTaskStartScheduler();
+
+    reset_handler();
 }
 
 /* EOF */
