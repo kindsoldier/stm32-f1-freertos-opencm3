@@ -41,6 +41,7 @@ MASTER_OBJS+= console.o
 MASTER_OBJS+= static.o
 MASTER_OBJS+= i2creg.o
 MASTER_OBJS+= mpu6050.o
+MASTER_OBJS+= bh1750.o
 
 
 all: rtos master.bin

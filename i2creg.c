@@ -5,7 +5,13 @@
 #include <stdlib.h>
 #include <i2creg.h>
 
+#include <FreeRTOS.h>
+#include <task.h>
+
+
 uint16_t i2c_read_seq(uint32_t i2c, uint16_t addr, uint8_t reg, uint8_t *data, uint16_t len) {
+
+    taskENTER_CRITICAL();
 
     while ((I2C_SR2(i2c) & (I2C_SR2_BUSY)));
 
@@ -53,6 +59,9 @@ uint16_t i2c_read_seq(uint32_t i2c, uint16_t addr, uint8_t reg, uint8_t *data, u
     }
 
     while ((I2C_SR2(i2c) & (I2C_SR2_MSL | I2C_SR2_BUSY)));
+
+    taskEXIT_CRITICAL();
+
     return ++i;
 }
 
@@ -149,8 +158,7 @@ void i2c_clean_bit(uint32_t i2c, uint16_t addr, uint8_t reg, uint8_t mask) {
 }
 
 
-
-#if 1
+#if 0
 
 void _i2c_write_reg(uint32_t i2c, uint16_t addr, uint8_t reg, uint8_t data) {
 
@@ -224,6 +232,10 @@ uint8_t _i2c_read_reg(uint32_t i2c, uint16_t addr, uint8_t reg) {
 
     return data;
 }
+
+
+
+
 #endif
 
 /* EOF */

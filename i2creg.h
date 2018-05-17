@@ -16,5 +16,4 @@ void i2c_clean_one_bit(uint32_t i2c, uint16_t addr, uint8_t reg, uint8_t base);
 void i2c_set_bit(uint32_t i2c, uint16_t addr, uint8_t reg, uint8_t mask);
 void i2c_clean_bit(uint32_t i2c, uint16_t addr, uint8_t reg, uint8_t mask);
 
-
 /* EOF */

@@ -1,42 +1,18 @@
 
 # FreeRTOS STM32 Lab
 
-Mix FreeRTOS + OpenCM3 + Newlib
+Mix FreeRTOSv10 + OpenCM3 + Newlib
 
 Released
+
 - RTOS interrupt glue code for opencm3
 - work with newlib malloc()
 - ST7735 based console
 - ADC with DMA
 - USART loopback
+- MPU6050 gyroscope w Robert Mahony filter
+- BH1750 ligth sensor
 
-### Memory map
-
-```
-------- __stack_start
- |
- |  global_mallock_reserv
- |----  __global_stack_end
- |  <------------------------------------- may be memory reserv
- |----------------- __global_heap_end
-------- __freertos_heap_end
- |
-----
- |  task2_stack                 RAM MEMORY
- |  task2_control_block
-----
- |  some_memory_allocation_for_variables
-----
- |  task1_stack
- |  task1_control_block
-----
- |
-------- __heap_start ---------------------------
- |
- |                              FLASH MEMORY
- | 
--------    --------------------------------------
-```
 
 No guarantees. This code is given only as an sample.
 

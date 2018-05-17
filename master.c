@@ -37,17 +37,7 @@
 #include <i2creg.h>
 #include <mpu6050.h>
 
-mpu_t mpu = {
-    .i2c = I2C1,
-    .addr = 0x68,
-    .q0 = 1.0,
-    .q1 = 0.0,
-    .q2 = 0.0,
-    .q3 = 0.0,
-    .integralFBx = 0.0,
-    .integralFBy = 0.0,
-    .integralFBz = 0.0
-};
+#include <bh1750.h>
 
 
 volatile QueueHandle_t usart_q;
@@ -196,6 +186,7 @@ static void adc_setup(void) {
 
 void dma1_channel1_isr(void) {
     dma_clear_interrupt_flags(DMA1, DMA_CHANNEL1, DMA_IFCR_CGIF1);
+    portEND_SWITCHING_ISR(pdFALSE);
 }
 
 static int16_t get_mcu_temp(void) {
@@ -220,6 +211,7 @@ static void i2c_setup(void) {
 }
 
 /* TASKs */
+
 static void usart_task(void *args __attribute__ ((unused))) {
     uint8_t c;
     while (1) {
@@ -280,7 +272,6 @@ void print_stats(void) {
 }
 
 static void counter_task(void *args __attribute__ ((unused))) {
-
     uint32_t i = 0;
     console_message_t msg;
     while (1) {
@@ -289,7 +280,6 @@ static void counter_task(void *args __attribute__ ((unused))) {
         snprintf(msg.str, CONSOLE_STR_LEN, "0x%08X", i);
         xQueueSend(console_q, &msg, portMAX_DELAY);
         print_stats();
-        //taskYIELD();
         vTaskDelay(pdMS_TO_TICKS(100));
         i++;
     }
@@ -298,42 +288,13 @@ static void counter_task(void *args __attribute__ ((unused))) {
 static void temp_task(void *args __attribute__ ((unused))) {
     console_message_t msg;
     while (1) {
-
         msg.row = 2;
         msg.col = 0;
 
-        #if 0
-        uint8_t str[20];
+        snprintf(msg.str, CONSOLE_STR_LEN, "Lx %6lu", bh_read(I2C1, BH1750_ADDR, BH1750_ONE_TIME_HR_MODE));
 
-        int16_t ax, ay, az, gx, gy, gz;
-        mpu_get_raw_data(&mpu, &ax, &ay, &az, &gx, &gy, &gz);
-
-        snprintf(str, STR_LEN, "%8ld", ax);
-        console_xyputs(&console, 4, 0, str);
-
-        snprintf(str, STR_LEN, "%8ld", ay);
-        console_xyputs(&console, 5, 0, str);
-        #endif
-
-        #if 0
-        double roll, pitch, yaw;
-        mpu_get_roll_pitch_yaw(&mpu, &roll, &pitch, &yaw);
-
-        snprintf(str, STR_LEN, "R %6ld", (int32_t)(roll * 62.5));
-        console_xyputs(&console, 3, 0, str);
-
-        snprintf(str, STR_LEN, "P %6ld", (int32_t)(pitch * 62.5));
-        console_xyputs(&console, 4, 0, str);
-        #endif
-
-        double roll, pitch, yaw;
-        mpu_get_roll_pitch_yaw(&mpu, &roll, &pitch, &yaw);
-        snprintf(msg.str, CONSOLE_STR_LEN, "Rl=%+4d Pi=%+4d", (int32_t)(roll * 62.5), (int32_t)(pitch * 62.5));
-
-        //snprintf(msg.str, CONSOLE_STR_LEN, "Tmcu %6u", get_mcu_temp());
-        //snprintf(msg.str, CONSOLE_STR_LEN, "I2C %6u", i2c_read_reg(I2C1, 0x68, 0x75));
         xQueueSend(console_q, &msg, portMAX_DELAY);
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(250));
     }
 }
 
@@ -349,13 +310,10 @@ void timer_cb(TimerHandle_t xTimer) {
     timer_id = pvTimerGetTimerID(xTimer);
     switch (*timer_id) {
         case TIMER_ID:
-            mpu_update_quaternion(&mpu);
             //xTimerStart(timer, 0);
             break;
     }
 }
-
-
 
 
 /* MAIN */
@@ -386,29 +344,12 @@ int main(void) {
     lcd_clear();
 
     i2c_setup();
-    mpu_setup(&mpu);
+    bh_setup(I2C1, BH1750_ADDR);
 
     console_xyputs(&console, 0, 0, "FreeRTOS STM32");
     console_xyputs(&console, 1, 0, "READY>");
 
     delay(100);
-
-#if 0
-    while (1) {
-        uint8_t res = 12;
-        res = i2c_read_reg(I2C1, 0x68, 0x75);
-        uint8_t str[20];
-        snprintf(str, 10, "0x%2X", res);
-        console_xyputs(&console, 3, 0, str);
-
-        #if 0
-        uint8_t rdata = i2c_read_reg(I2C1, 0x68, 0x75);
-        snprintf(str, STR_LEN, "R %02X", rdata);
-        console_xyputs(&console, 4, 0, str);
-        #endif
-
-    }
-#endif
 
     usart_q = xQueueCreate(UART_QUEUE_LEN, sizeof(uint8_t));
     console_q = xQueueCreate(CONSOLE_QUEUE_LEN, sizeof(console_message_t));
@@ -417,8 +358,7 @@ int main(void) {
     xTaskCreate(counter_task, "LOG", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, counter_task_h);
     xTaskCreate(console_task, "CON", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, console_task_h);
     xTaskCreate(temp_task, "TMP", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, NULL);
-
-    timer = xTimerCreate("TIMER", 20 / portTICK_PERIOD_MS, pdTRUE, (void*) &timer_id, timer_cb);
+    timer = xTimerCreate("TMR1", 20 / portTICK_PERIOD_MS, pdTRUE, (void*) &timer_id, timer_cb);
     xTimerReset(timer, 0);
 
     vTaskStartScheduler();

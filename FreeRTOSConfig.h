@@ -16,7 +16,7 @@ extern uint32_t rcc_ahb_frequency;
 
 #define configIDLE_SHOULD_YIELD         1
 #define configMAX_PRIORITIES            5
-#define configMAX_TASK_NAME_LEN         16
+#define configMAX_TASK_NAME_LEN         4
 #define configUSE_16_BIT_TICKS          0
 
 
