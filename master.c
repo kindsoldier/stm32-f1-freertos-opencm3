@@ -64,11 +64,14 @@ static void clock_setup(void) {
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_GPIOB);
     rcc_periph_clock_enable(RCC_GPIOC);
+
     rcc_periph_clock_enable(RCC_AFIO);
     rcc_periph_clock_enable(RCC_USART1);
     rcc_periph_clock_enable(RCC_SPI2);
+
     rcc_periph_clock_enable(RCC_DMA1);
     rcc_periph_clock_enable(RCC_ADC1);
+
     rcc_periph_clock_enable(RCC_I2C1);
 }
 
@@ -318,7 +321,7 @@ void timer_cb(TimerHandle_t xTimer) {
 
 /* MAIN */
 
-#define IRQ2NVIC_PRIOR(x)       ((x) << 4)
+#define _IRQ2NVIC_PRIOR(x)       ((x) << 4)
 #define UART_QUEUE_LEN      1024
 #define CONSOLE_QUEUE_LEN   8
 
@@ -332,10 +335,11 @@ int main(void) {
     dma_setup();
     adc_setup();
 
-
     scb_set_priority_grouping(SCB_AIRCR_PRIGROUP_GROUP16_NOSUB);
-    nvic_set_priority(NVIC_SYSTICK_IRQ, IRQ2NVIC_PRIOR(15));
-    nvic_set_priority(NVIC_USART1_IRQ, IRQ2NVIC_PRIOR(configMAX_PRIORITIES - 1));
+    nvic_set_priority(NVIC_SYSTICK_IRQ, _IRQ2NVIC_PRIOR(15));
+    nvic_set_priority(NVIC_USART1_IRQ, configMAX_SYSCALL_INTERRUPT_PRIORITY + _IRQ2NVIC_PRIOR(1));
+    nvic_set_priority(NVIC_USART3_IRQ, configMAX_SYSCALL_INTERRUPT_PRIORITY + _IRQ2NVIC_PRIOR(2));
+
 
     lcd_spi_setup();
     console_setup();
@@ -343,8 +347,8 @@ int main(void) {
     lcd_setup();
     lcd_clear();
 
-    i2c_setup();
-    bh_setup(I2C1, BH1750_ADDR);
+    //i2c_setup();
+    //bh_setup(I2C1, BH1750_ADDR);
 
     console_xyputs(&console, 0, 0, "FreeRTOS STM32");
     console_xyputs(&console, 1, 0, "READY>");

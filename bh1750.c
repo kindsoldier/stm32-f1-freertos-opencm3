@@ -3,8 +3,9 @@
 
 #include <libopencm3/stm32/i2c.h>
 #include <stdlib.h>
-#include <bh1750.h>
+
 #include <i2creg.h>
+#include <bh1750.h>
 
 
 void bh_setup(uint32_t i2c, uint8_t addr) {

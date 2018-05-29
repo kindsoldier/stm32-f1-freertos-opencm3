@@ -52,9 +52,10 @@ extern uint32_t rcc_ahb_frequency;
 #define INCLUDE_xTaskResumeFromISR              1
 #define INCLUDE_xTimerPendFunctionCall          0
 
-#define configKERNEL_INTERRUPT_PRIORITY         0xFF
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY    0xB0
-#define configLIBRARY_KERNEL_INTERRUPT_PRIORITY 15
+
+#define IRQ2NVIC_PRIOR(x)       ((x) << 4)
+#define configKERNEL_INTERRUPT_PRIORITY         IRQ2NVIC_PRIOR(15)
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY    IRQ2NVIC_PRIOR(5)
 
 
 #define configSUPPORT_DYNAMIC_ALLOCATION        1
