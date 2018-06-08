@@ -294,8 +294,10 @@ static void temp_task(void *args __attribute__ ((unused))) {
         msg.row = 2;
         msg.col = 0;
 
-        snprintf(msg.str, CONSOLE_STR_LEN, "Lx %6lu", bh_read(I2C1, BH1750_ADDR, BH1750_ONE_TIME_HR_MODE));
+        //snprintf(msg.str, CONSOLE_STR_LEN, "Lx %6lu", bh_read(I2C1, BH1750_ADDR, BH1750_ONE_TIME_HR_MODE));
+        snprintf(msg.str, CONSOLE_STR_LEN, "Tu %6d", get_mcu_temp());
 
+    
         xQueueSend(console_q, &msg, portMAX_DELAY);
         vTaskDelay(pdMS_TO_TICKS(250));
     }
