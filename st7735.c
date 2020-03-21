@@ -94,29 +94,29 @@ void lcd_spi_setup(void) {
 }
 
 
-inline void _delay_ms (uint16_t ms) {
+void _delay_ms (uint16_t ms) {
     for (volatile int i = 0; i < ms * 800; i++)
         __asm__("nop");
 }
 
-inline void _delay (uint16_t ms) {
+void _delay (uint16_t ms) {
     for (volatile int i = 0; i < ms; i++)
         __asm__("nop");
 }
 
 
-inline void spi_wait_busy(uint32_t spi) {
+void spi_wait_busy(uint32_t spi) {
     while ((SPI_SR(spi) & SPI_SR_BSY));
     _delay(1);
 }
 
-inline void lcd_write_byte(uint8_t c) {
+void lcd_write_byte(uint8_t c) {
     spi_wait_busy(LCD_SPI);
     gpio_set(LCD_A0_PORT, LCD_A0_PIN);
     spi_send(LCD_SPI, c);
 }
 
-inline void lcd_write_word(uint16_t w) {
+void lcd_write_word(uint16_t w) {
     spi_wait_busy(LCD_SPI);
 
     gpio_set(LCD_A0_PORT, LCD_A0_PIN);
@@ -125,7 +125,7 @@ inline void lcd_write_word(uint16_t w) {
     spi_send(LCD_SPI, (uint8_t)(w & 0xff));
 }
 
-inline void lcd_write_command(uint8_t c) {
+static void lcd_write_command(uint8_t c) {
     spi_wait_busy(LCD_SPI);
     gpio_clear(LCD_A0_PORT, LCD_A0_PIN);
     spi_send(LCD_SPI, c);

@@ -360,9 +360,9 @@ int main(void) {
     usart_q = xQueueCreate(UART_QUEUE_LEN, sizeof(uint8_t));
     console_q = xQueueCreate(CONSOLE_QUEUE_LEN, sizeof(console_message_t));
 
-    xTaskCreate(usart_task, "UAR", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, usart_task_h);
-    xTaskCreate(counter_task, "LOG", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, counter_task_h);
-    xTaskCreate(console_task, "CON", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, console_task_h);
+    xTaskCreate(usart_task, "UAR", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 1, &usart_task_h);
+    xTaskCreate(counter_task, "LOG", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, &counter_task_h);
+    xTaskCreate(console_task, "CON", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, &console_task_h);
     xTaskCreate(temp_task, "TMP", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, NULL);
     timer = xTimerCreate("TMR1", 20 / portTICK_PERIOD_MS, pdTRUE, (void*) &timer_id, timer_cb);
     xTimerReset(timer, 0);
